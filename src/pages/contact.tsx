@@ -24,6 +24,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import emailjs from '@emailjs/browser';
+
 
 // Since we don't know the exact export structure of Layout.tsx, we'll use a more generic import approach
 // that will work regardless of whether Layout is a default or named export
@@ -31,6 +33,10 @@ import Layout from "../components/Layout";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
+  email: z
+   .string()
+   .email({ message: "Invalid email address." })
+   .min(1, { message: "Email is required." }),
   message: z
     .string()
     .min(10, { message: "Message must be at least 10 characters." }),
@@ -46,12 +52,31 @@ export default function Contact() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
+      email: "",
       message: "",
     },
   });
 
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
+// Send email using EmailJS
+try {
+  await emailjs.send(
+    'service_g65rveb',
+    'template_xcdnq8k',
+    {
+      to_name: 'Aorus Solutions',
+      name: data.name,
+      from_email: 'urke.mafia@gmail.com',  // Use the user's email
+      message: data.message,
+      email: data.email  // Your receiving email
+    },
+    'HoT_2f-dcrZPfKBwk'
+  );
+} catch (error) {
+  console.error('Failed to send email:', error);
+  throw error; // Re-throw to be caught by the outer try-catch
+}
 
     // Simulate form submission
     try {
@@ -228,6 +253,19 @@ export default function Contact() {
                             <FormLabel>Name</FormLabel>
                             <FormControl>
                               <Input placeholder="Your name" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                              <Input placeholder="your.email@example.com" type="email" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
